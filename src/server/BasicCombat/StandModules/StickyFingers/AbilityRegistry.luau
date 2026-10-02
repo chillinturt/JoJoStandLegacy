@@ -29,6 +29,7 @@ AbilityRegistry[1] = {
 	Name = "Chop",
 	Type = "Press",
 	Cooldown = 10,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		StickyFingers.Barrage(standModel)
 	end,
@@ -41,6 +42,7 @@ AbilityRegistry[2] = {
 	Name = "Splatter",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		StickyFingers.ZipperTrap(standModel)
 	end,
@@ -71,6 +73,7 @@ AbilityRegistry[4] = {
 	Hyperarmor = true,
 	Cooldown = 30,
 	EndlagCancel = true,
+	Startup = 0.35,
 
 	BypassGlobalCooldown = true,
 

@@ -23,6 +23,7 @@ AbilityRegistry[1] = {
 	Name = "VaporizationFreeze",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.2,
 	Execute = function(player)
 		local character = player.Character
 		if character then
@@ -38,6 +39,7 @@ AbilityRegistry[2] = {
 	Name = "DivineDrink",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.2,
 	Execute = function(player)
 		local character = player.Character
 		if character then
@@ -53,6 +55,9 @@ AbilityRegistry[3] = {
 	Name = "SpaceRipperStingyEyes",
 	Type = "Press",
 	Cooldown = 8,
+	-- No Startup here on purpose: Vampirism.SpaceRipperStingyEyes already has
+	-- its own internal SPACE_RIPPER_STINGY_EYES_STARTUP wind-up before the
+	-- projectiles fire -- a central Startup on top would double the delay.
 	Execute = function(player)
 		local character = player.Character
 		if character then
@@ -68,6 +73,7 @@ AbilityRegistry[4] = {
 	Name = "BloodRush",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.15,
 	Execute = function(player)
 		local character = player.Character
 		local blood = Vampire.getBloodValue(character).Value

@@ -44,6 +44,56 @@ local function ensurePlayerTables(player)
 	activeHolds[player] = activeHolds[player] or { On = {}, Off = {} }
 end
 
+-- True if the character is still around and not dead -- used to bail out of
+-- an ability's Startup wind-up (see below) if the player died/left/despawned
+-- mid-cast instead of firing the ability on an invalid character.
+local function isCharacterUsable(character)
+	if not character or not character.Parent then
+		return false
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Dead then
+		return false
+	end
+	return true
+end
+
+---------------------------------------------------------------------
+-- Startup: an optional per-ability wind-up before it actually fires,
+-- configured via abilityData.Startup (seconds, defaults to 0/instant) right
+-- next to Cooldown in each stand's AbilityRegistry -- tune per ability for
+-- weight (a heavy haymaker can wind up, a barrier/teleport can stay instant).
+-- Locks the character via CombatUtils.SetActionInProgress for the duration
+-- (same mechanism used for post-ability endlag elsewhere) so the wind-up
+-- can't be interrupted by queuing another input, and re-validates the
+-- character afterward in case they died/disconnected mid-wind-up.
+--
+-- NOT applied to abilities whose Execute function is itself a multi-stage
+-- state machine where the "same press" can mean an instant follow-up/cancel
+-- (e.g. StarPurple's MachOra follow-up, GoldExperiment's EagleStrike
+-- redirect, KingCarmine's TimeErase second-press cancel) -- a flat central
+-- delay would wrongly slow those follow-up presses too, so those registries
+-- intentionally leave Startup unset.
+---------------------------------------------------------------------
+local function waitForStartup(character, abilityData)
+	local startup = abilityData.Startup or 0
+	if startup <= 0 then
+		return true
+	end
+
+	CombatUtils.SetActionInProgress(character, startup)
+	task.wait(startup)
+
+	if not isCharacterUsable(character) then
+		return false
+	end
+	if abilityData.Hyperarmor ~= true and CombatUtils.GetStun(character) then
+		return false
+	end
+
+	return true
+end
+
 local function getHeroGroup(heroName)
 	return HeroGroups.GetHeroGroup(heroName) or heroName
 end
@@ -295,6 +345,10 @@ local function runAbility(player, character, mode, registry, abilityData, root, 
 				return
 			end
 
+			if not waitForStartup(character, abilityData) then
+				return
+			end
+
 			-- Execute Start
 			if abilityData.ExecuteStart then
 				abilityData.ExecuteStart(root, player)
@@ -326,6 +380,10 @@ local function runAbility(player, character, mode, registry, abilityData, root, 
 				return
 			end
 			if CombatUtils.GetActionInProgress(character) and not abilityData.EndlagCancel then
+				return
+			end
+
+			if not waitForStartup(character, abilityData) then
 				return
 			end
 
@@ -362,13 +420,17 @@ local function runAbility(player, character, mode, registry, abilityData, root, 
 	end
 
 	modeCooldowns[abilityId] = tick()
-	if abilityData.Execute then
-		abilityData.Execute(root, player, state)
-	end
-
 	if not abilityData.BypassGlobalCooldown then
 		local cooldownUIEvent = ReplicatedStorage.Shared.BasicCombat.UI:WaitForChild("CooldownUpdateEvent")
 		cooldownUIEvent:FireClient(player, abilityId, cooldown)
+	end
+
+	if not waitForStartup(character, abilityData) then
+		return
+	end
+
+	if abilityData.Execute then
+		abilityData.Execute(root, player, state)
 	end
 end
 

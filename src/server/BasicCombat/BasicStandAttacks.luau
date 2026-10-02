@@ -19,6 +19,14 @@ local BASE_PUNCH_COOLDOWN = 0.4
 local DEX_SPEED_PER_POINT = 0.05
 local BASE_COMBO = 3
 
+-- Startup: brief delay between the swing starting (animation/sound fire
+-- immediately) and the hitbox actually landing, so stand punches have a
+-- touch of real weight instead of connecting the instant you press.
+local STAND_PUNCH_STARTUP = 0.08
+-- Startup before the barrage's hitbox loop actually starts dealing damage --
+-- the wind-up into "ORA ORA ORA", not the interval between individual hits.
+local BARRAGE_STARTUP = 0.15
+
 local barragingFlags = {}
 
 local StandUtils = require(script.Parent.StandUtils)
@@ -255,29 +263,35 @@ function BasicStandAttacks.BasicPunch(standModel)
 		looped = false,
 	})
 
-	hitboxSpawner.spawnHitbox({
-		Character = character,
-		Damage = PUNCH_DAMAGE[standTag.Value] or 0.1,
+	task.delay(STAND_PUNCH_STARTUP, function()
+		if not standModel.Parent or not character.Parent then
+			return
+		end
 
-		StatScaling = {
-			Power = 0.2,
-		},
+		hitboxSpawner.spawnHitbox({
+			Character = character,
+			Damage = PUNCH_DAMAGE[standTag.Value] or 0.1,
 
-		Size = HITBOX_SIZE,
-		Offset = hitboxOffset,
-		Color = BrickColor.new("Bright red"),
-		Duration = 0.1,
-		Transparency = 1,
-		Name = "BasicPunchHitbox",
-		Rotation = rotation,
-		StunDuration = 0.2,
+			StatScaling = {
+				Power = 0.2,
+			},
 
-		HitSoundId = 4799537772,
-		HitSoundPitch = 1,
-		HitSoundVolume = 1,
-		HitSoundPlaybackSpeed = 1,
-		RandomPitchRange = 0.08,
-	})
+			Size = HITBOX_SIZE,
+			Offset = hitboxOffset,
+			Color = BrickColor.new("Bright red"),
+			Duration = 0.1,
+			Transparency = 1,
+			Name = "BasicPunchHitbox",
+			Rotation = rotation,
+			StunDuration = 0.2,
+
+			HitSoundId = 4799537772,
+			HitSoundPitch = 1,
+			HitSoundVolume = 1,
+			HitSoundPlaybackSpeed = 1,
+			RandomPitchRange = 0.08,
+		})
+	end)
 
 	--reset index in 3 seconds if index == 1
 	-- Reset combo after 3 seconds of inactivity if index == 2 (after punch 1)
@@ -442,8 +456,9 @@ function BasicStandAttacks.StartBarrage(character)
 		})
 	end
 
-	-- Start spawning hitboxes
+	-- Start spawning hitboxes (after a short wind-up into the flurry)
 	task.spawn(function()
+		task.wait(BARRAGE_STARTUP)
 		while barragingFlags[character] do
 			hitboxSpawner.spawnHitbox({
 				Character = character,

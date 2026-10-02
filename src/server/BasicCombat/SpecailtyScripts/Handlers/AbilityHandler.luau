@@ -31,6 +31,49 @@ local function hasEnoughHamon(character, cost)
 	return hamonValue >= cost
 end
 
+-- True if the character is still around and not dead -- used to bail out of
+-- an ability's Startup wind-up (see below) if the player died/left/despawned
+-- mid-cast instead of firing the ability on an invalid character.
+local function isCharacterUsable(character)
+	if not character or not character.Parent then
+		return false
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Dead then
+		return false
+	end
+	return true
+end
+
+---------------------------------------------------------------------
+-- Startup: an optional per-ability wind-up before it actually fires,
+-- configured via abilityData.Startup (seconds, defaults to 0/instant) right
+-- next to Cooldown in each specialty's AbilityRegistry. Mirrors the same
+-- mechanism in the stand AbilityHandler (see its comment for the full
+-- rationale and the multi-stage-Execute exceptions) -- keep both in sync.
+---------------------------------------------------------------------
+local function waitForStartup(character, abilityData)
+	local startup = abilityData.Startup or 0
+	if startup <= 0 then
+		return true
+	end
+
+	CombatUtils.SetActionInProgress(character, startup)
+	task.wait(startup)
+
+	if not isCharacterUsable(character) then
+		return false
+	end
+	if CombatUtils.GetStun(character) then
+		return false
+	end
+	if not hasEnoughHamon(character, abilityData.HamonCost) then
+		return false
+	end
+
+	return true
+end
+
 ---------------------------------------------------------------------
 -- Load a Specialty's AbilityRegistry
 ---------------------------------------------------------------------
@@ -185,6 +228,10 @@ function AbilityHandler.ExecuteAbility(player, abilityId, state)
 				return
 			end
 
+			if not waitForStartup(character, abilityData) then
+				return
+			end
+
 			-- Execute Start
 			if abilityData.ExecuteStart then
 				abilityData.ExecuteStart(player)
@@ -216,6 +263,10 @@ function AbilityHandler.ExecuteAbility(player, abilityId, state)
 				return
 			end
 			if CombatUtils.GetActionInProgress(character) then
+				return
+			end
+
+			if not waitForStartup(character, abilityData) then
 				return
 			end
 
@@ -253,13 +304,17 @@ function AbilityHandler.ExecuteAbility(player, abilityId, state)
 	end
 
 	cooldowns[player][abilityId] = tick()
-	if abilityData.Execute then
-		abilityData.Execute(player, state)
-	end
-
 	if not abilityData.BypassGlobalCooldown then
 		local cooldownUIEvent = ReplicatedStorage.Shared.BasicCombat.UI:WaitForChild("SpecCooldownUpdateEvent")
 		cooldownUIEvent:FireClient(player, abilityId, cooldown)
+	end
+
+	if not waitForStartup(character, abilityData) then
+		return
+	end
+
+	if abilityData.Execute then
+		abilityData.Execute(player, state)
 	end
 end
 

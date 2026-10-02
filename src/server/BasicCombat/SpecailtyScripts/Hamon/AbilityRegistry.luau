@@ -26,6 +26,7 @@ AbilityRegistry[1] = {
 	Type = "Hold", -- << Add this
 	Cooldown = 10, -- handled internally
 	HamonCost = 2,
+	Startup = 0.15,
 	ExecuteStart = function(player)
 		local character = player.Character
 		if Hamon.GetHamon(character) < SUNLIGHT_YELLOW_COST then
@@ -51,6 +52,7 @@ AbilityRegistry[2] = {
 	Type = "Press",
 	HamonCost = 20,
 	Cooldown = 8,
+	Startup = 0.15,
 	Execute = function(player)
 		local character = player.Character
 		if Hamon.GetHamon(character) < ZOOM_PUNCH_COST then
@@ -70,6 +72,7 @@ AbilityRegistry[3] = {
 	Type = "Press",
 	HamonCost = 20,
 	Cooldown = 8,
+	Startup = 0.2,
 	Execute = function(player)
 		local character = player.Character
 		if Hamon.GetHamon(character) < BUBBLECUTTER_COST then
@@ -89,6 +92,7 @@ AbilityRegistry[4] = {
 	Type = "Press",
 	HamonCost = 35,
 	Cooldown = 8,
+	Startup = 0.3,
 	Execute = function(player)
 		local character = player.Character
 		if Hamon.GetHamon(character) < LIFEFORCEAURA_COST then

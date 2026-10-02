@@ -20,6 +20,7 @@ AbilityRegistry[1] = {
 	Name = "FlameShot",
 	Type = "Press",
 	Cooldown = 3,
+	Startup = 0.1,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -35,6 +36,7 @@ AbilityRegistry[2] = {
 	Name = "RedBind",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		MagiciansRed.RedBind(standModel)
 	end,
@@ -47,6 +49,7 @@ AbilityRegistry[3] = {
 	Name = "CrossfireHurricane",
 	Type = "Press",
 	Cooldown = 20,
+	Startup = 0.4,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -62,6 +65,7 @@ AbilityRegistry[4] = {
 	Name = "Hellfire",
 	Type = "Press",
 	Cooldown = 25,
+	Startup = 0.5,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then

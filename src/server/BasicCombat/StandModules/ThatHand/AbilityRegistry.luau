@@ -20,6 +20,7 @@ AbilityRegistry[1] = {
 	Name = "Erase",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		ThatHand.Erase(standModel)
 	end,
@@ -47,6 +48,7 @@ AbilityRegistry[3] = {
 	Name = "TearSpace",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		ThatHand.TearSpace(standModel)
 	end,
@@ -59,6 +61,7 @@ AbilityRegistry[4] = {
 	Name = "LastStand",
 	Type = "Press",
 	Cooldown = 28,
+	Startup = 0.5,
 	Execute = function(standModel, player)
 		ThatHand.LastStand(standModel)
 	end,

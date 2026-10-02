@@ -6,6 +6,7 @@ local OffAbilities = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 
 local HitboxSpawner = require(ServerScriptService.BasicCombat:WaitForChild("HitboxSpawner"))
 local AnimationModule = require(ServerScriptService.BasicCombat:WaitForChild("AnimationModule"))
@@ -46,11 +47,11 @@ end
 -- Jab: a quick bare-fisted punch that lunges the user forward into range.
 ------------------------------------------------------------------------------
 local JAB_DAMAGE = 8
-local JAB_SIZE = Vector3.new(4, 4, 5)
+local JAB_SIZE = Vector3.new(5, 8, 9)
 local JAB_OFFSET = CFrame.new(0, 0, -3)
 local JAB_LUNGE_SPEED = 100
 local JAB_LUNGE_DURATION = 0.4
-local JAB_STUN = 0.5
+local JAB_STUN = 0.8
 local JAB_ENDLAG = 0.35
 
 function OffAbilities.Jab(character)
@@ -80,16 +81,16 @@ function OffAbilities.Jab(character)
 		Name = "OffJabLunge",
 	})
 
-	HitboxSpawner.spawnStandOffHitbox({
+	local hitbox = HitboxSpawner.spawnStandOffHitbox({
 		Character = character,
 		Damage = JAB_DAMAGE,
 		StatScaling = { Strength = 1.2 },
 		Size = JAB_SIZE,
 		Offset = JAB_OFFSET,
 		Color = BrickColor.new("Institutional white"),
-		Duration = 0.15,
+		Duration = 0.8,
 		StunDuration = JAB_STUN,
-		Transparency = 1,
+		Transparency = 0.5,
 		Name = "OffJabHitbox",
 	})
 
@@ -98,6 +99,26 @@ function OffAbilities.Jab(character)
 		effectName = "PunchImpact",
 		attachTo = hrp,
 		emitCount = 1,
+	})
+
+	local vfxId = HttpService:GenerateGUID(false)
+	hitbox:SetAttribute("VFX_ID", vfxId)
+
+	SpawnClientVfx:FireAllClients({
+		type = "Attached",
+		effectName = "MachOra",
+		attachId = vfxId,
+
+		initialRotation = Vector3.new(
+			0, -- X
+			math.rad(90), -- Y
+			math.rad(90) -- Z
+		),
+
+		offset = CFrame.new(0, 0, 0),
+		scale = 1,
+		transparency = 0.7,
+		attachTo = hitbox,
 	})
 
 	return true
@@ -206,7 +227,7 @@ function OffAbilities.Grapple(character)
 				Color = BrickColor.new("Institutional white"),
 				Duration = 0.1,
 				StunDuration = 0,
-				Transparency = 1,
+				Transparency = 0.5,
 				Name = "OffGrapplePunch",
 				CanBlock = false,
 			})
@@ -240,7 +261,7 @@ function OffAbilities.Grapple(character)
 				Color = BrickColor.new("Really black"),
 				Duration = 0.15,
 				StunDuration = GRAPPLE_FINISHER_STUN,
-				Transparency = 1,
+				Transparency = 0.5,
 				Name = "OffGrappleFinisher",
 				CanBlock = false,
 			})
@@ -383,7 +404,7 @@ function OffAbilities.FlurryStart(character)
 				Color = BrickColor.new("Institutional white"),
 				Duration = 0.12,
 				StunDuration = FLURRY_STUN,
-				Transparency = 1,
+				Transparency = 0.5,
 				Name = "OffFlurryHitbox",
 			})
 

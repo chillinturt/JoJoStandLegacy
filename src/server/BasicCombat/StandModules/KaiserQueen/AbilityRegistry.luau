@@ -32,6 +32,7 @@ AbilityRegistry[2] = {
 	Name = "SheerHeartAttack",
 	Type = "Press",
 	Cooldown = 9,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		KaiserQueen.SheerHeartAttack(standModel)
 	end,
@@ -44,6 +45,7 @@ AbilityRegistry[3] = {
 	Name = "StrayCatBubble",
 	Type = "Press",
 	Cooldown = 15,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		KaiserQueen.StrayCatBubble(standModel)
 	end,

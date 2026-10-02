@@ -30,7 +30,23 @@ local lastDirection = {}
 local wasMoving = {}
 local standStates = {}
 local swimmingPlayers = {}
-local swimHeartbeats = {}
+local swimStillSince = {}
+local trackedCharacters = {} -- [player] = { character, humanoid }
+
+-- Directional sectors: Forward/Backward win diagonals; a direction is kept until
+-- the input leaves its sector by this many extra degrees, so diagonals and small
+-- turns don't flicker between two walk anims.
+local FORWARD_MAX_ANGLE = 50
+local BACKWARD_MIN_ANGLE = 130
+local DIRECTION_HYSTERESIS = 15
+local SWIM_IDLE_DELAY = 0.1
+
+local directionCenters = {
+	Forward = 0,
+	Right = 90,
+	Backward = 180,
+	Left = -90,
+}
 
 local function updateStand(player, character, shouldBeForward)
 	local stand = StandUtils.GetActiveStand(character)
@@ -69,6 +85,29 @@ local function updateStand(player, character, shouldBeForward)
 	standStates[player] = desiredState
 end
 
+-- FloorMaterial can lag or go stale on the server for client-owned characters
+-- (e.g. after the swim → jump → land sequence), so back it up with a short
+-- raycast to the ground before deciding the character is falling.
+local groundRayParams = RaycastParams.new()
+groundRayParams.FilterType = Enum.RaycastFilterType.Exclude
+groundRayParams.RespectCanCollide = true
+
+local function isGrounded(character, humanoid, root)
+	if humanoid.FloorMaterial ~= Enum.Material.Air then
+		return true
+	end
+
+	local ignore = { character }
+	local stand = StandUtils.GetActiveStand(character)
+	if stand then
+		table.insert(ignore, stand)
+	end
+	groundRayParams.FilterDescendantsInstances = ignore
+
+	local rayLength = humanoid.HipHeight + root.Size.Y / 2 + 0.75
+	return workspace:Raycast(root.Position, Vector3.new(0, -rayLength, 0), groundRayParams) ~= nil
+end
+
 -- Decide movement direction relative to character facing
 local function getMovementDirection(player, character, humanoid)
 	local root = character:FindFirstChild("HumanoidRootPart")
@@ -81,13 +120,20 @@ local function getMovementDirection(player, character, humanoid)
 	-- ChangeState(Landed) is called by OceanSwimming to reset freefall.
 	if swimmingPlayers[player] then
 		if humanoid.MoveDirection.Magnitude > 0.1 then
+			swimStillSince[player] = nil
 			return "SwimMove"
-		else
-			return "SwimIdle"
 		end
+		-- Only commit to SwimIdle after a short stillness window so momentary
+		-- MoveDirection drops from physics jitter don't restart the animation.
+		swimStillSince[player] = swimStillSince[player] or tick()
+		if lastDirection[player] == "SwimMove" and tick() - swimStillSince[player] < SWIM_IDLE_DELAY then
+			return "SwimMove"
+		end
+		return "SwimIdle"
 	end
+	swimStillSince[player] = nil
 
-	if humanoid.FloorMaterial == Enum.Material.Air then
+	if not isGrounded(character, humanoid, root) then
 		return "Fall"
 	end
 
@@ -96,20 +142,26 @@ local function getMovementDirection(player, character, humanoid)
 		return "Idle"
 	end
 
-	local forward = root.CFrame.LookVector
-	local dot = forward:Dot(moveDir.Unit)
-	local cross = forward:Cross(moveDir.Unit)
+	-- Angle of the input relative to facing: 0 = forward, 90 = right, ±180 = back, -90 = left
+	local localDir = root.CFrame:VectorToObjectSpace(moveDir)
+	local angle = math.deg(math.atan2(localDir.X, -localDir.Z))
 
-	if dot > 0.7 then
+	local current = directionCenters[lastDirection[player]] and lastDirection[player]
+	if current then
+		local diff = math.abs((angle - directionCenters[current] + 180) % 360 - 180)
+		if diff <= 45 + DIRECTION_HYSTERESIS then
+			return current
+		end
+	end
+
+	if math.abs(angle) <= FORWARD_MAX_ANGLE then
 		return "Forward"
-	elseif dot < -0.7 then
+	elseif math.abs(angle) >= BACKWARD_MIN_ANGLE then
 		return "Backward"
-	elseif cross.Y > 0 then
-		return "Left"
-	elseif cross.Y < 0 then
+	elseif angle > 0 then
 		return "Right"
 	else
-		return "Idle"
+		return "Left"
 	end
 end
 
@@ -138,21 +190,10 @@ local function onStateChanged(player, humanoid, character)
 			activeStates[player] = nil
 		end
 
-		-- Play landing anim once
-		local landTrack
+		-- Play landing anim once. The per-frame update loop starts the walk/idle
+		-- anim once the land anim (Action priority) stops counting as an action.
 		if not isActing then
-			landTrack =
-				AnimationModule.PlayAnimation(character, animations.Land, false, Enum.AnimationPriority.Action, 1.5)
-		end
-
-		if landTrack then
-			local connection
-			connection = landTrack.Stopped:Connect(function()
-				if connection then
-					connection:Disconnect()
-				end
-				onStateChanged(player, humanoid, character)
-			end)
+			AnimationModule.PlayAnimation(character, animations.Land, false, Enum.AnimationPriority.Action, 1.5)
 		end
 
 		lastDirection[player] = direction
@@ -216,47 +257,71 @@ local function onStateChanged(player, humanoid, character)
 		activeStates[player] = nil
 	end
 
-	if not isActing then
-		AnimationModule.PlayAnimation(character, animId, true, Enum.AnimationPriority.Movement, 1)
+	lastDirection[player] = direction
+
+	-- Only record the state once it's actually playing; otherwise the next update
+	-- retries, so the walk anim starts as soon as the blocking action ends.
+	if isActing then
+		return
 	end
 
+	AnimationModule.PlayAnimation(character, animId, true, Enum.AnimationPriority.Movement, 1)
 	activeStates[player] = {
 		direction = direction,
 		animId = animId,
 	}
-
-	lastDirection[player] = direction
 end
 
 -- Setup when player spawns
 local function onCharacterAdded(player, character)
-	local humanoid = character:WaitForChild("Humanoid", 5)
-	if humanoid then
-		-- Movement direction changed
-		humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(function()
-			onStateChanged(player, humanoid, character)
-		end)
+	activeStates[player] = nil
+	lastDirection[player] = nil
+	standStates[player] = nil
+	swimmingPlayers[player] = nil
+	swimStillSince[player] = nil
+	trackedCharacters[player] = nil
 
-		-- Air/ground state changed
-		humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
-			onStateChanged(player, humanoid, character)
-		end)
+	local humanoid = character:WaitForChild("Humanoid", 5)
+	if humanoid and player.Character == character then
+		trackedCharacters[player] = { character = character, humanoid = humanoid }
 	end
 end
 
--- Setup for new players
-Players.PlayerAdded:Connect(function(player)
+local function onPlayerAdded(player)
 	player.CharacterAdded:Connect(function(character)
-		activeStates[player] = nil
-		lastDirection[player] = nil
-		swimmingPlayers[player] = nil
-		if swimHeartbeats[player] then
-			swimHeartbeats[player]:Disconnect()
-			swimHeartbeats[player] = nil
-		end
-
 		onCharacterAdded(player, character)
 	end)
+	if player.Character then
+		task.spawn(onCharacterAdded, player, player.Character)
+	end
+end
+
+for _, player in Players:GetPlayers() do
+	onPlayerAdded(player)
+end
+Players.PlayerAdded:Connect(onPlayerAdded)
+
+Players.PlayerRemoving:Connect(function(player)
+	activeStates[player] = nil
+	lastDirection[player] = nil
+	wasMoving[player] = nil
+	standStates[player] = nil
+	swimmingPlayers[player] = nil
+	swimStillSince[player] = nil
+	trackedCharacters[player] = nil
+end)
+
+-- Re-evaluate every frame instead of only on MoveDirection/FloorMaterial changes:
+-- turning (AutoRotate or shiftlock) changes the facing without firing either
+-- signal, and remote/replication ordering around swim exits can skip the one
+-- FloorMaterial change that would have ended the fall. onStateChanged is a
+-- no-op when nothing changed.
+RunService.Heartbeat:Connect(function()
+	for player, tracked in trackedCharacters do
+		if tracked.character.Parent and tracked.humanoid.Health > 0 then
+			onStateChanged(player, tracked.humanoid, tracked.character)
+		end
+	end
 end)
 
 -- Mirror the swim state tracked by OceanService so the animation layer knows
@@ -265,56 +330,7 @@ end)
 SwimmingState.OnServerEvent:Connect(function(player, action)
 	if action == "Enter" then
 		swimmingPlayers[player] = true
-
-		-- Poll movement each heartbeat so SwimIdle ↔ SwimMove transitions fire
-		-- even when the MoveDirection signal is delayed by network replication.
-		if swimHeartbeats[player] then
-			swimHeartbeats[player]:Disconnect()
-		end
-		local lastMoving = nil
-		local stoppedAt = nil
-		swimHeartbeats[player] = RunService.Heartbeat:Connect(function()
-			local character = player.Character
-			if not character then return end
-			local humanoid = character:FindFirstChildOfClass("Humanoid")
-			if not humanoid then return end
-			local isMoving = humanoid.MoveDirection.Magnitude > 0.1
-			if isMoving then
-				-- Moving: fire immediately, clear any pending idle timer.
-				stoppedAt = nil
-				if lastMoving ~= true then
-					lastMoving = true
-					onStateChanged(player, humanoid, character)
-				end
-			else
-				-- Not moving: only commit to SwimIdle after 100 ms of continuous
-				-- stillness so momentary MoveDirection drops from physics jitter
-				-- don't restart the animation.
-				if stoppedAt == nil then stoppedAt = tick() end
-				if lastMoving ~= false and tick() - stoppedAt >= 0.1 then
-					lastMoving = false
-					onStateChanged(player, humanoid, character)
-				end
-			end
-		end)
-
 	elseif action == "Exit" then
 		swimmingPlayers[player] = nil
-		if swimHeartbeats[player] then
-			swimHeartbeats[player]:Disconnect()
-			swimHeartbeats[player] = nil
-		end
-	else
-		return
 	end
-
-	local character = player.Character
-	if not character then
-		return
-	end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if not humanoid then
-		return
-	end
-	onStateChanged(player, humanoid, character)
 end)

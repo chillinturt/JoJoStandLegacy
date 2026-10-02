@@ -19,6 +19,11 @@ local PILOT_PUNCH_ANIMATIONS = { "136847469830162", "116981576719265", "11505928
 local STAND_OFF_PUNCH_DAMAGE = 5
 local BASE_COMBO = 5
 
+-- Startup: brief delay between the swing starting (animation/sound fire
+-- immediately) and the hitbox actually landing, so the bare-handed combo has
+-- a touch of real weight instead of connecting the instant you press.
+local STAND_OFF_PUNCH_STARTUP = 0.08
+
 function GeneralCombat.StandOffPunch(character, damage)
 	local primaryParty = character:FindFirstChild("HumanoidRootPart")
 	if not primaryParty or not character then
@@ -85,28 +90,34 @@ function GeneralCombat.StandOffPunch(character, damage)
 		looped = false,
 	})
 
-	hitboxSpawner.spawnStandOffHitbox({
-		Character = character,
-		Damage = finalDamage,
+	task.delay(STAND_OFF_PUNCH_STARTUP, function()
+		if not character.Parent then
+			return
+		end
 
-		StatScaling = {
-			Strength = 0.2,
-		},
+		hitboxSpawner.spawnStandOffHitbox({
+			Character = character,
+			Damage = finalDamage,
 
-		Size = HITBOX_SIZE,
-		Offset = hitboxOffset,
-		Color = BrickColor.new("Bright red"),
-		Duration = 0.3,
-		StunDuration = 0.2,
-		Transparency = 1,
-		Name = "BasicPunchHitbox",
+			StatScaling = {
+				Strength = 0.2,
+			},
 
-		HitSoundId = 4799537772,
-		HitSoundPitch = 1,
-		HitSoundVolume = 1,
-		HitSoundPlaybackSpeed = 1,
-		RandomPitchRange = 0.08,
-	})
+			Size = HITBOX_SIZE,
+			Offset = hitboxOffset,
+			Color = BrickColor.new("Bright red"),
+			Duration = 0.3,
+			StunDuration = 0.2,
+			Transparency = 1,
+			Name = "BasicPunchHitbox",
+
+			HitSoundId = 4799537772,
+			HitSoundPitch = 1,
+			HitSoundVolume = 1,
+			HitSoundPlaybackSpeed = 1,
+			RandomPitchRange = 0.08,
+		})
+	end)
 
 	--reset index in 3 seconds if index == 1
 	-- Reset combo after 3 seconds of inactivity if index == 2 (after punch 1)

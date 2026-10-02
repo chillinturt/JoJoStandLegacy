@@ -40,6 +40,7 @@ local function onControlPointComplete(pointData)
 	end)
 end
 
+--previously used version
 --[[ For each part in the objectives folder, create a control point
 for _, objectivePart in ipairs(KOTHObjectivesFolder:GetChildren()) do
 	if objectivePart:IsA("BasePart") then

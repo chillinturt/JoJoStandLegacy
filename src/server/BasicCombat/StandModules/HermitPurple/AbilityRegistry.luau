@@ -21,6 +21,7 @@ AbilityRegistry[1] = {
 	Name = "PuppetMaster",
 	Type = "Press", -- << Add this
 	Cooldown = 10,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		HermitPurple.PuppetMaster(standModel)
 	end,
@@ -33,6 +34,7 @@ AbilityRegistry[2] = {
 	Name = "Grapple",
 	Type = "Hold", -- << Add this
 	Cooldown = 10, -- handled internally
+	Startup = 0.15,
 	ExecuteStart = function(standModel, player)
 		local character = standModel.Parent
 		if character then

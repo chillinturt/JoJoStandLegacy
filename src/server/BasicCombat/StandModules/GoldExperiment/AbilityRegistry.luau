@@ -36,6 +36,7 @@ AbilityRegistry[1] = {
 	Name = "LifeOverflow",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		GoldExperiment.LifeOverflow(standModel)
 	end,
@@ -48,6 +49,7 @@ AbilityRegistry[2] = {
 	Name = "TreeOfLife",
 	Type = "Press",
 	Cooldown = 10,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		local char = standModel.Parent
 		if char then
@@ -66,6 +68,9 @@ AbilityRegistry[3] = {
 
 	-- ⭐ We handle our own cooldown (like MachOra)
 	BypassGlobalCooldown = true,
+	-- No Startup here on purpose: Execute is a launch/redirect state machine
+	-- and the redirect press must stay instant. See AbilityHandler's
+	-- waitForStartup comment.
 
 	Execute = function(standModel, player)
 		local character = standModel.Parent
@@ -126,6 +131,7 @@ AbilityRegistry[4] = {
 	Name = "CarnivorousTrap",
 	Type = "Press",
 	Cooldown = 23,
+	Startup = 0.35,
 	Execute = function(standModel, player)
 		local char = standModel.Parent
 		if char then

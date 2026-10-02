@@ -26,7 +26,7 @@ OffAbilityRegistry.AbilityTypes = {
 OffAbilityRegistry[1] = {
 	Name = "Jab",
 	Type = "Press",
-	Cooldown = 1.5,
+	Cooldown = 10,
 	Execute = function(character, player)
 		if character then
 			OffAbilities.Jab(character)
@@ -41,6 +41,7 @@ OffAbilityRegistry[2] = {
 	Name = "Grapple",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.2,
 	Execute = function(character, player)
 		if character then
 			OffAbilities.Grapple(character)
@@ -55,6 +56,7 @@ OffAbilityRegistry[3] = {
 	Name = "Rush",
 	Type = "Press",
 	Cooldown = 7,
+	Startup = 0.15,
 	Execute = function(character, player)
 		if character then
 			OffAbilities.Rush(character)
@@ -69,6 +71,7 @@ OffAbilityRegistry[4] = {
 	Name = "Flurry",
 	Type = "Toggle",
 	Cooldown = 16,
+	Startup = 0.2,
 	ExecuteStart = function(character, player)
 		if character then
 			OffAbilities.FlurryStart(character)

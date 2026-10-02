@@ -20,6 +20,7 @@ AbilityRegistry[1] = {
 	Name = "NailShot",
 	Type = "Press",
 	Cooldown = 3,
+	Startup = 0.1,
 	Execute = function(standModel, player)
 		print("execute entered")
 		local character = standModel.Parent
@@ -37,6 +38,7 @@ AbilityRegistry[2] = {
 	Name = "GuidedNail",
 	Type = "Press",
 	Cooldown = 6,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -52,6 +54,7 @@ AbilityRegistry[3] = {
 	Name = "SpinWormhole",
 	Type = "Press",
 	Cooldown = 15,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -67,6 +70,7 @@ AbilityRegistry[4] = {
 	Name = "InfiniteRotation",
 	Type = "Press",
 	Cooldown = 23,
+	Startup = 0.45,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then

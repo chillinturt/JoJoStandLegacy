@@ -22,6 +22,7 @@ AbilityRegistry[1] = {
 	Type = "Toggle",
 	EndlagCancel = true,
 	Cooldown = 1,
+	Startup = 0.2,
 	ExecuteStart = function(standModel, player)
 		NuclearRain.StartTorrentialDownpour(standModel)
 	end,
@@ -38,6 +39,7 @@ AbilityRegistry[2] = {
 	Type = "Press",
 	EndlagCancel = true,
 	Cooldown = 8,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -66,6 +68,7 @@ AbilityRegistry[4] = {
 	Name = "RainCage",
 	Type = "Press",
 	Cooldown = 25,
+	Startup = 0.4,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		-- 1️⃣ Read barrier FIRST

@@ -29,6 +29,7 @@ AbilityRegistry[1] = {
 	Name = "Chop",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		KingCarmine.Chop(standModel)
 	end,
@@ -41,6 +42,7 @@ AbilityRegistry[2] = {
 	Name = "Splatter",
 	Type = "Press",
 	Cooldown = 10,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		KingCarmine.Splatter(standModel)
 	end,
@@ -73,6 +75,9 @@ AbilityRegistry[4] = {
 	EndlagCancel = true,
 
 	BypassGlobalCooldown = true,
+	-- No Startup here on purpose: Execute is a self-managed activate/cancel
+	-- state machine, and the second-press cancel must stay instant. See
+	-- AbilityHandler's waitForStartup comment.
 
 	Execute = function(standModel, player)
 		local character = standModel.Parent

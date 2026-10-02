@@ -20,6 +20,7 @@ AbilityRegistry[1] = {
 	Name = "SunlightYellow",
 	Type = "Hold", -- << Add this
 	Cooldown = 10, -- handled internally
+	Startup = 0.15,
 	ExecuteStart = function(player)
 		local character = player.Character
 		if character then
@@ -71,6 +72,7 @@ AbilityRegistry[4] = {
 	Name = "RisingFist",
 	Type = "Press",
 	Cooldown = 2,
+	Startup = 0.1,
 	Execute = function(player)
 		local character = player.Character
 		if character then

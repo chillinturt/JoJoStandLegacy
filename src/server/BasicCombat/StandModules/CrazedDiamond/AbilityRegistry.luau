@@ -14,53 +14,54 @@ AbilityRegistry.AbilityTypes = {
 }
 
 --------------------------------------------------------------------
--- Ability 1 - Erase
+-- Ability 1 - Restoration (heal ally/self, or hit an enemy caught in the touch)
 --------------------------------------------------------------------
 AbilityRegistry[1] = {
-	Name = "ThrowKnives",
+	Name = "Restoration",
 	Type = "Press",
-	Cooldown = 7,
+	Cooldown = 11,
+	Startup = 0.3,
 	Execute = function(standModel, player)
-		CrazedDiamond.ThrowKnives(standModel)
+		CrazedDiamond.Restoration(standModel)
 	end,
 }
 
 --------------------------------------------------------------------
--- Ability 2 - VoidShielding
+-- Ability 2 - Sharpened Disc (ranged option: thrown repaired-debris projectile)
 --------------------------------------------------------------------
 AbilityRegistry[2] = {
-	Name = "BlazingStrike",
+	Name = "SharpenedDisc",
 	Type = "Press",
 	Cooldown = 9,
+	Startup = 0.25,
 	Execute = function(standModel, player)
-		CrazedDiamond.BlazingStrike(standModel)
+		CrazedDiamond.SharpenedDisc(standModel)
 	end,
 }
 
 --------------------------------------------------------------------
--- Ability 3 - TearSpace
+-- Ability 3 - Overdrive Punch ("Dora!!") -- single devastating punch + knockback + follow-up impact
 --------------------------------------------------------------------
 AbilityRegistry[3] = {
-	Name = "KickBarrage",
+	Name = "OverdrivePunch",
 	Type = "Press",
-	Cooldown = 15,
+	Cooldown = 10,
+	Startup = 0.45, -- heavy haymaker wind-up ("Dora!!")
 	Execute = function(standModel, player)
-		CrazedDiamond.KickBarrage(standModel)
+		CrazedDiamond.OverdrivePunch(standModel)
 	end,
 }
 
 --------------------------------------------------------------------
--- Ability 4 - LastStand
+-- Ability 4 - Perfect Repair (ultimate) -- instant AoE heal-allies/damage-enemies burst + heal aftershocks
 --------------------------------------------------------------------
 AbilityRegistry[4] = {
-	Name = "TimeStop",
+	Name = "PerfectRepair",
 	Type = "Press",
-	Cooldown = 35,
+	Cooldown = 38,
+	Startup = 0.6,
 	Execute = function(standModel, player)
-		local character = standModel.Parent
-		if character then
-			CrazedDiamond.TimeStop(character)
-		end
+		CrazedDiamond.PerfectRepair(standModel)
 	end,
 }
 

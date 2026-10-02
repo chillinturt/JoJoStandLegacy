@@ -36,6 +36,7 @@ AbilityRegistry[1] = {
 	Name = "StarFinger",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		StarPurple.StarFinger(standModel)
 	end,
@@ -50,6 +51,10 @@ AbilityRegistry[2] = {
 	Cooldown = COOLDOWN_TIME,
 	Hyperarmor = true,
 	BypassGlobalCooldown = true,
+	-- No Startup here on purpose: Execute is a 2-stage state machine (first
+	-- press launches, second press is an instant follow-up) -- a flat
+	-- central wind-up would also delay the follow-up press, which must stay
+	-- instant. See AbilityHandler's waitForStartup comment.
 
 	Execute = function(standModel, player)
 		local character = standModel.Parent
@@ -142,6 +147,7 @@ AbilityRegistry[3] = {
 	Name = "GroundPound",
 	Type = "Press",
 	Cooldown = 12,
+	Startup = 0.35,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
@@ -157,6 +163,7 @@ AbilityRegistry[4] = {
 	Name = "TimeStop",
 	Type = "Press",
 	Cooldown = 40,
+	Startup = 0.5,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then

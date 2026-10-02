@@ -41,6 +41,7 @@ AbilityRegistry[1] = {
 	Name = "DarkSpace",
 	Type = "Press",
 	Cooldown = 0,
+	Startup = 0.2,
 
 	-- We manage our own per-charge cooldown below
 	BypassGlobalCooldown = true,
@@ -80,6 +81,7 @@ AbilityRegistry[2] = {
 	Name = "HowsThat",
 	Type = "Press",
 	Cooldown = 14,
+	Startup = 0.3,
 	Execute = function(standModel, player)
 		local char = standModel.Parent
 		if char then
@@ -95,6 +97,7 @@ AbilityRegistry[3] = {
 	Name = "VoidLeap",
 	Type = "Press",
 	Cooldown = 10,
+	Startup = 0.2,
 	Execute = function(standModel, player)
 		local char = standModel.Parent
 		if char then
@@ -110,6 +113,7 @@ AbilityRegistry[4] = {
 	Name = "MadnessSorrow",
 	Type = "Press",
 	Cooldown = 23,
+	Startup = 0.5,
 	Execute = function(standModel, player)
 		local char = standModel.Parent
 		if char then

@@ -20,6 +20,7 @@ AbilityRegistry[1] = {
 	Name = "MagneticAura",
 	Type = "Toggle",
 	Cooldown = 1,
+	Startup = 0.15,
 	ExecuteStart = function(standModel, player)
 		Metallica.StartMagneticAura(standModel)
 	end,
@@ -35,6 +36,7 @@ AbilityRegistry[2] = {
 	Name = "ScalpelDaggers",
 	Type = "Press",
 	Cooldown = 8,
+	Startup = 0.25,
 	Execute = function(standModel, player)
 		local character = standModel.Parent
 		if character then
