@@ -18,7 +18,7 @@ This repo holds the original game's source and its full commit history. The game
 
 ## What's in the game
 
-- 15+ Stands, each with its own abilities, plus specialty fighting styles
+- 40+ Stands, each with its own abilities, plus specialty fighting styles
 - Melee, projectile and area attacks, with blocking, stuns and shared combat rules
 - Enemy NPCs, quest chains, inventory, talents and levelling to 120
 - Three save slots per player, each a separate character
