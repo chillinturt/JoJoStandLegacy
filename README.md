@@ -10,6 +10,10 @@ This repo holds the original game's source and its full commit history. The game
 
 *Footage is from the current version.*
 
+**Trailer (43 s, with sound):** Scary Monsters and Hanged Man, two Stands added to the current version from player requests. Click to watch.
+
+<a href="docs/media/trailer.mp4"><img src="docs/media/trailer-poster.jpg" alt="Trailer thumbnail: the Scary Monsters raptor in the desert" width="300"></a>
+
 <img width="1903" height="999" alt="Screenshot from the game" src="https://github.com/user-attachments/assets/969900cb-a2a9-4c7a-8da9-58515cc8097d" />
 
 ## What's in the game
