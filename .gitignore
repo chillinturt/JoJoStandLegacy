@@ -4,3 +4,8 @@
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
+
+# Generated and editor files
+sourcemap.json
+.VSCodeCounter/
+.vscode/

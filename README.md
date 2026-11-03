@@ -1,144 +1,68 @@
-# JoJo: Steel Ball Crusaders (Multiplayer Systems Project)
+# JoJo: Steel Ball Crusaders
 
-**Multiplayer, real-time game systems project demonstrating distributed systems, client–server architecture, and production-style software ownership**
+A multiplayer action RPG on Roblox, written in Luau. Players unlock Stands with their own ability kits, fight through quests and enemies, and duel each other in PvP.
 
----
+This repo holds the original game's source and its full commit history. The game has since been renamed **JoJo: Stand Legacy**, and that version continues in **[JoJoStandLegacy](https://github.com/chillinturt/JoJoStandLegacy)**.
 
-## Overview
+**[Play on Roblox](https://www.roblox.com/games/118168989887674/JoJo-Stand-Legacy)** (PC, iOS, Android)
 
-**JoJo: Steel Ball Crusaders** is a multiplayer game project built on the Roblox platform, where I designed and implemented **real-time, networked gameplay systems** with a strong focus on **reliability, state synchronization, and performance under live multiplayer conditions**.
+![Gameplay from the current version of the game](docs/media/demo.gif)
 
-The project is actively developed and tested in a **real-world production environment**, with live players, continuous iteration, and rapid debugging cycles based on observed runtime behavior.
+*Footage is from the current version.*
 
-This repository represents a **systems-oriented software engineering project**, not just a game.
+<img width="1903" height="999" alt="Screenshot from the game" src="https://github.com/user-attachments/assets/969900cb-a2a9-4c7a-8da9-58515cc8097d" />
 
----
+## What's in the game
 
-## Key Technical Highlights
+- 15+ Stands, each with its own abilities, plus specialty fighting styles
+- Melee, projectile and area attacks, with blocking, stuns and shared combat rules
+- Enemy NPCs, quest chains, inventory, talents and levelling to 120
+- Three save slots per player, each a separate character
+- 1v1 and King of the Hill modes
+- Boats and an ocean, the newest and least finished systems
 
-### Real-Time, Distributed Software
-- Designed **client–server gameplay architecture** with authoritative server logic
-- Implemented **network-synchronized ability systems** with strict consistency guarantees
-- Managed real-time **visual effects lifecycles** across multiple clients
-- Ensured deterministic behavior under latency and player churn
+## How the main systems work
 
-### Reliability & State Management
-- Built robust **cooldown, resource, and state validation systems** to prevent desynchronization
-- Solved complex issues involving:
-  - Player death and respawn
-  - UI state persistence across character resets
-  - Preventing invalid state transitions in live sessions
-- Defensive programming to handle partial failures and unexpected client behavior
+**Combat runs on the server.** A key press only sends a request. The server checks cooldowns and state, runs the Stand's ability module, and applies damage through shared hitbox and combat code. NPCs take damage through the same path as players, so there's no separate NPC combat system.
 
-### Software Ownership & Iteration
-- Responsible for the **entire software lifecycle**:
-  - Design
-  - Implementation
-  - Debugging
-  - Live testing
-  - Refinement based on observed runtime behavior
-- Regularly closed the feedback loop between:
-  - Design assumptions
-  - Actual multiplayer runtime performance
+**Effects run on the clients.** The server sends a short description of each effect, and one client script builds and plays it. Heavy particle work stays off the server.
 
-### Architecture & Code Quality
-- Modular system design (ability registry, cooldown manager, VFX system)
-- Clear separation of concerns between:
-  - Gameplay logic
-  - Networking
-  - Presentation
-- Designed extensible systems to support rapid prototyping of new abilities
+**Abilities are organized by folder.** Each Stand has its own module and ability registry on top of the shared combat code, so a new kit doesn't need new damage or hit-detection code.
 
----
+**Saves are session-locked.** Player data goes through the [ProfileStore](https://github.com/MadStudioRoblox/ProfileStore) library, so two servers can't write to one profile at once. Purchase history is saved so a repeated receipt isn't granted twice.
 
-## Networking & Distributed Systems Experience
+More detail, including what I'd change, is in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-While implemented within Roblox’s networking model, the project demonstrates **core distributed systems concepts** applicable beyond game development:
+## Where to start reading
 
-- Client–server message passing
-- Server-authoritative validation
-- Latency-aware design
-- Synchronization of transient and persistent state
-- Security-minded design (preventing client-side authority exploits)
-- Highlight: many major **VFX do not exist on the server.** The server simply tells all clients to render them, thus saving the server's processing power.
+| File | What it does |
+|---|---|
+| [`AbilityHandler.luau`](src/server/BasicCombat/StandModules/Handlers/AbilityHandler.luau) | Press, hold and toggle handling, plus cooldowns, for every Stand |
+| [`HitboxSpawner.luau`](src/server/BasicCombat/HitboxSpawner.luau) | Melee, projectile, guided and damage-over-time hit detection |
+| [`VfxClientManager.client.luau`](src/client/VfxClientManager.client.luau) | The one client script that plays server-requested effects |
+| [`PlayerData.luau`](src/server/DataSaving/PlayerData.luau) | Loading, saving and switching character slots |
 
-These concepts directly translate to **large-scale distributed systems** like those used in satellite communications and real-time networked services.
+## Team and tools
 
----
+I'm the team lead. I did the programming and most of the building, and teammates helped build in-game assets and collect online assets. I set up the technical constraints so they could work without needing code changes.
 
-## Collaboration & Leadership
+I wrote the earliest prototypes, including hitboxes, Stand summoning and abilities, without AI, then used Claude Code to improve them over time. I'm happy to walk through any system here and explain how it works.
 
-- Led a **cross-disciplinary team** of contributors:
-  - Environment builders
-  - Asset researchers
-  - Animators
-- Defined technical constraints and interfaces so non-programmers could work independently
-- Acted as **sole software engineer**, owning all programming decisions and integrations
-- Practiced clear written communication through documentation and internal coordination
+Built with Luau, Roblox Studio and Rojo.
 
-This mirrors real engineering environments where software engineers collaborate across disciplines.
+## Running it
 
----
-
-## Technologies & Languages
-
-- **Primary Languages:** Lua (Roblox)
-- **Concepts:**  
-  - Real-time systems  
-  - Distributed state synchronization  
-  - Client–server architecture  
-  - Event-driven design  
-  - Debugging live systems  
-- **Tools:** Roblox Studio, Git/GitHub
-
----
-
-## Why This Project Is Relevant to Employers
-
-This project demonstrates:
-- Ability to build **highly reliable, real-time software**
-- Comfort working in **distributed, networked environments**
-- Strong **engineering fundamentals** and problem-solving skills
-- Full ownership of production software used by real users
-- Willingness to iterate rapidly and handle changing requirements
-
-While the application domain is a game, the **engineering challenges mirror those found in real-world, large-scale systems** — including networking, reliability, performance, and state management.
-
-Some content from the game:
-<img width="1903" height="999" alt="image" src="https://github.com/user-attachments/assets/969900cb-a2a9-4c7a-8da9-58515cc8097d" />
-
-Fully playable game link (working on PC, IOS, and Android):
-https://www.roblox.com/games/118168989887674/JoJo-Steel-Ball-Crusaders#!/game-instances
----
-
-## Repository Visibility Note
-
-This repository represents a **sanitized and shareable subset** of the full project.  
-Additional details, architecture discussions, and live demonstrations can be provided upon request. (Now available on Mobile)
-
----
-
-## Author
-
-**ChillinTurt**  
-Software Engineering Student (Graduating 2025–2026)  
-Strong background in C++, Python, C#, Lua, and real-time distributed systems
-
-
-# JoJoSteelBallCrusaders
-Generated by [Rojo](https://github.com/rojo-rbx/rojo) 7.5.1.
-
-## Getting Started
-To build the place from scratch, use:
-
-```bash
-rojo build -o "JoJoSteelBallCrusaders.rbxlx"
-```
-
-Next, open `JoJoSteelBallCrusaders.rbxlx` in Roblox Studio and start the Rojo server:
-
-```bash
+```sh
+rokit install
 rojo serve
 ```
 
-For more help, check out [the Rojo documentation](https://rojo.space/docs).
+Then connect with the Rojo plugin in Roblox Studio. The place file (maps, models, UI and effects) isn't in this repo, so the code alone won't give you the full game. [The live game](https://www.roblox.com/games/118168989887674/JoJo-Stand-Legacy) is the easiest way to see it running.
+
+## Legal
+
+This is an unofficial fan project, not affiliated with or endorsed by the owners of *JoJo's Bizarre Adventure*, whose characters and names belong to them. The MIT license covers my code only. `ProfileStore.luau` is third-party code under its own terms.
+
+## Author
+
+**ChillinTurt**, software engineering student. I also work in C++, Python and C#.
